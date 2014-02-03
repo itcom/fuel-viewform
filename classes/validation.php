@@ -39,17 +39,20 @@ class Validation extends \Fuel\Core\Validation {
 
     
     
-    public static function _validation_allow_empty_in_array($val, $compare) {
-        if (Validation::_empty($val)) {
-            return true;
-        }
-        
-        if (!in_array($val, $compare)) {
-                return false;
-        }
-    
-        return true;
-    }
+	public static function _validation_allow_empty_in_array($val, $compare) {
+		if (Validation::_empty($val)) {
+			return true;
+		}
+		if (is_array($val)) {
+			foreach($val as $v) { 
+				if (!in_array($v, $compare)) {
+					return false;
+				}
+			}
+		}
+
+		return true;
+	}
     
 
     /**
