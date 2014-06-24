@@ -1,6 +1,9 @@
 {
     "name" : "itcom/fuel-viewform",
-	"type": "library",
+	"type": "fuel-package",
 	"license": "MIT",
+    "require": {
+		"composer/installers" : "*"
+	},
 	"description": "form and Fieldset extention"
 }
