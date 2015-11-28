@@ -14,6 +14,75 @@ class Fieldset extends \Fuel\Core\Fieldset {
         return parent::forge($name,$config);
     }
 
+	/**
+	 * Build the fieldset HTML
+	 *
+	 * @return  string
+	 */
+	public function build($action = null)
+	{
+        if(isset($_SERVER["HTTP_X_TORIHODAI_HOST"]))
+        {
+            if(preg_match('|/'.\Mobile::root().'(.*)$|', $action, $m))
+            {
+                $action = 'https://' . $_SERVER["HTTP_X_TORIHODAI_HOST"].'/'.\Mobile::root().'?url='. urlencode('/'.$m[1]);
+            }
+        }
+		$attributes = $this->get_config('form_attributes');
+		if ($action and ($this->fieldset_tag == 'form' or empty($this->fieldset_tag)))
+		{
+			$attributes['action'] = $action;
+		}
+
+		$open = ($this->fieldset_tag == 'form' or empty($this->fieldset_tag))
+			? $this->form()->open($attributes).PHP_EOL
+			: $this->form()->{$this->fieldset_tag.'_open'}($attributes);
+
+		$fields_output = '';
+
+		// construct the tabular form table header
+		if ($this->tabular_form_relation)
+		{
+			$properties = call_user_func($this->tabular_form_model.'::properties');
+			$primary_keys = call_user_func($this->tabular_form_model.'::primary_key');
+			$fields_output .= '<thead><tr>'.PHP_EOL;
+			foreach ($properties as $field => $settings)
+			{
+				if ((isset($settings['skip']) and $settings['skip']) or in_array($field, $primary_keys))
+				{
+					continue;
+				}
+				if (isset($settings['form']['type']) and ($settings['form']['type'] === false or $settings['form']['type'] === 'hidden'))
+				{
+					continue;
+				}
+				$fields_output .= "\t".'<th class="'.$this->tabular_form_relation.'_col_'.$field.'">'.(isset($settings['label'])?\Lang::get($settings['label'], array(), $settings['label']):'').'</th>'.PHP_EOL;
+			}
+			$fields_output .= "\t".'<th>'.\Config::get('form.tabular_delete_label', 'Delete?').'</th>'.PHP_EOL;
+
+			$fields_output .= '</tr></thead>'.PHP_EOL;
+		}
+
+		foreach ($this->field() as $f)
+		{
+			in_array($f->name, $this->disabled) or $fields_output .= $f->build().PHP_EOL;
+		}
+
+		$close = ($this->fieldset_tag == 'form' or empty($this->fieldset_tag))
+			? $this->form()->close($attributes).PHP_EOL
+			: $this->form()->{$this->fieldset_tag.'_close'}($attributes);
+
+		$template = $this->form()->get_config((empty($this->fieldset_tag) ? 'form' : $this->fieldset_tag).'_template',
+			"\n\t\t{open}\n\t\t<table>\n{fields}\n\t\t</table>\n\t\t{close}\n");
+
+		$template = str_replace(array('{form_open}', '{open}', '{fields}', '{form_close}', '{close}'),
+			array($open, $open, $fields_output, $close, $close),
+			$template);
+
+		return $template;
+	}
+
+
     
     /**
      * Factory for Fieldset_Field objects
