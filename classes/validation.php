@@ -11,7 +11,7 @@ class Validation extends \Fuel\Core\Validation {
         if (!checkdate($month, $day, $year)) {
             return false;
         }
-        
+
         return mktime(0, 0, 0,  $month , $day, $year);
     }
 
@@ -37,30 +37,38 @@ class Validation extends \Fuel\Core\Validation {
         return true;
     }
 
-    
-    
+    public static function _validation_in_array($val, $compare) {
+        if (is_array($val)) {
+            foreach($val as $v) {
+                if (!in_array($v, $compare)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
 	public static function _validation_allow_empty_in_array($val, $compare) {
 		if (Validation::_empty($val)) {
 			return true;
 		}
 		if (is_array($val)) {
-			foreach($val as $v) { 
+			foreach($val as $v) {
 				if (!in_array($v, $compare)) {
 					return false;
 				}
 			}
 		}
-
 		return true;
 	}
-    
+
 
     /**
      * Validate not required array input
      *
      * @param   array
      * @return  true|array
-     * 
+     *
      * @author     Kenji Suzuki https://github.com/kenjis
      * @copyright  2011-2012 Kenji Suzuki
      * @license    MIT License http://www.opensource.org/licenses/mit-license.php
